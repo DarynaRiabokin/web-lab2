@@ -21,24 +21,34 @@ const warehouseIdSelector = document.getElementById("warehouse-id");
 const productIdSelector = document.getElementById("product-id");
 
 const shops = new Proxy([], {
-  deleteProperty: function (shops, index) {
-    const node = shopsTable.getElementById(shops[index].id);
-    shopsTable.removeChild(node);
+  deleteProperty: function (arr, index) {
+    const node = document.getElementById(`shop-${arr[index].id}`);
+    node.parentNode.removeChild(node);
 
     const deletedShopNodeFromSelector = chooseShopSelector.childNodes[index];
-    chooseShopSelector.childNodes.removeChild(deletedShopNodeFromSelector);
+    chooseShopSelector.removeChild(deletedShopNodeFromSelector);
 
-    delete shops[index];
+    arr.splice(index, 1);
 
     return true;
   },
-  set: function (shops, index, shop) {
+  set: function (arr, index, shop) {
     if (shop instanceof Shop) {
       const chooseShopNode = document.createElement("option");
       chooseShopNode.value = shop.id;
       chooseShopNode.innerText = shop.name;
       const tableRow = document.createElement("tr");
-      tableRow.id = shop.id;
+      tableRow.id = `shop-${shop.id}`;
+
+      const deleteChild = document.createElement("td");
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "btn btn-danger";
+      deleteButton.innerText = "X";
+      deleteButton.onclick = () => {
+        delete shops[index];
+      };
+      deleteChild.appendChild(deleteButton);
+      tableRow.appendChild(deleteChild);
 
       [shop.id, shop.name, shop.location].forEach((element) => {
         const rowChild = document.createElement("td");
@@ -48,7 +58,7 @@ const shops = new Proxy([], {
 
       chooseShopSelector.appendChild(chooseShopNode);
       shopsTable.appendChild(tableRow);
-      shops[index] = shop;
+      arr[index] = shop;
     }
 
     return true;
@@ -56,24 +66,34 @@ const shops = new Proxy([], {
 });
 
 const products = new Proxy([], {
-  deleteProperty: function (products, index) {
-    const node = productsTable.getElementById(products[index].code);
-    productsTable.removeChild(node);
+  deleteProperty: function (arr, index) {
+    const node = document.getElementById(`product-${arr[index].code}`);
+    node.parentNode.removeChild(node);
 
     const deletedProductNode = productIdSelector.childNodes[index];
-    productIdSelector.childNodes.removeChild(deletedProductNode);
+    productIdSelector.removeChild(deletedProductNode);
 
-    delete shops[index];
+    arr.splice(index, 1);
 
     return true;
   },
-  set: function (products, index, product) {
+  set: function (arr, index, product) {
     if (product instanceof Product) {
       const productIdNode = document.createElement("option");
       productIdNode.value = product.code;
       productIdNode.innerText = product.code;
       const tableRow = document.createElement("tr");
-      tableRow.id = product.code;
+      tableRow.id = `product-${product.code}`;
+
+      const deleteChild = document.createElement("td");
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "btn btn-danger";
+      deleteButton.innerText = "X";
+      deleteButton.onclick = () => {
+        delete products[index];
+      };
+      deleteChild.appendChild(deleteButton);
+      tableRow.appendChild(deleteChild);
 
       [product.code, product.name, product.producingCountry].forEach(
         (element) => {
@@ -85,31 +105,41 @@ const products = new Proxy([], {
 
       productIdSelector.appendChild(productIdNode);
       productsTable.appendChild(tableRow);
-      products[index] = product;
+      arr[index] = product;
     }
 
     return true;
   },
 });
 const warehouses = new Proxy([], {
-  deleteProperty: function (warehouses, index) {
-    const node = warehouseTable.getElementById(warehouses[index].id);
-    warehouseTable.removeChild(node);
+  deleteProperty: function (arr, index) {
+    const node = document.getElementById(`warehouse-${arr[index].id}`);
+    node.parentNode.removeChild(node);
 
     const deletedWarehouseNode = warehouseIdSelector.childNodes[index];
-    warehouseIdSelector.childNodes.removeChild(deletedWarehouseNode);
+    warehouseIdSelector.removeChild(deletedWarehouseNode);
 
-    delete warehouses[index];
+    arr.splice(index, 1);
 
     return true;
   },
-  set: function (warehouses, index, warehouse) {
+  set: function (arr, index, warehouse) {
     if (warehouse instanceof Warehouse) {
       const warehouseIdNode = document.createElement("option");
       warehouseIdNode.value = warehouse.id;
       warehouseIdNode.innerText = warehouse.id;
       const tableRow = document.createElement("tr");
-      tableRow.id = warehouse.id;
+      tableRow.id = `warehouse-${warehouse.id}`;
+
+      const deleteChild = document.createElement("td");
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "btn btn-danger";
+      deleteButton.innerText = "X";
+      deleteButton.onclick = () => {
+        delete warehouses[index];
+      };
+      deleteChild.appendChild(deleteButton);
+      tableRow.appendChild(deleteChild);
 
       [warehouse.id, warehouse.shopId, warehouse.capacity].forEach(
         (element) => {
@@ -121,13 +151,16 @@ const warehouses = new Proxy([], {
 
       warehouseIdSelector.appendChild(warehouseIdNode);
       warehouseTable.appendChild(tableRow);
-      warehouses[index] = warehouse;
+      arr[index] = warehouse;
     }
 
     return true;
   },
 });
-const productsInWarehouse = new ProductsInWarehouse(addProductToWarehouse, removeProductFromWarehouse);
+const productsInWarehouse = new ProductsInWarehouse(
+  addProductToWarehouse,
+  removeProductFromWarehouse
+);
 
 addShopForm.onsubmit = (event) => {
   const shopName = event.target.elements["shop-name"].value;
@@ -165,9 +198,17 @@ addProductToWarehouseForm.onsubmit = (event) => {
   return false;
 };
 
-function addProductToWarehouse({ productId, warehouseId }) {
+function addProductToWarehouse({ productId, warehouseId }, removeItem) {
   const productRow = document.createElement("tr");
   productRow.id = `${productId}_${warehouseId}`;
+
+  const deleteChild = document.createElement("td");
+  const deleteButton = document.createElement("button");
+  deleteButton.className = "btn btn-danger";
+  deleteButton.innerText = "X";
+  deleteButton.onclick = removeItem;
+  deleteChild.appendChild(deleteButton);
+  productRow.appendChild(deleteChild);
 
   [productId, warehouseId].forEach((element) => {
     const rowChild = document.createElement("td");
@@ -179,8 +220,8 @@ function addProductToWarehouse({ productId, warehouseId }) {
 }
 
 function removeProductFromWarehouse({ productId, warehouseId }) {
-  const node = productsInWarehousesTable.getElementById(`${productId}_${warehouseId}`);
-  productsInWarehousesTable.removeChild(node);
+  const node = document.getElementById(`${productId}_${warehouseId}`);
+  node.parentNode.removeChild(node);
 }
 
 export function uuid() {
@@ -191,3 +232,37 @@ export function uuid() {
     ).toString(16)
   );
 }
+
+function loadFromStorage(key, Class, target) {
+  let fromStorage = localStorage.getItem(key);
+  fromStorage = JSON.parse(fromStorage);
+
+  if (Array.isArray(target)) {
+    fromStorage.forEach((el) => {
+      target.push(Object.assign(new Class(), el));
+    });
+  } else {
+    fromStorage.products = fromStorage.products.forEach(product => {
+      product = Object.assign(new Class(), product);
+      target.addProduct(product.warehouseId, product.productId);
+    });
+  }
+}
+
+window.addEventListener("load", () => {
+  try {
+    loadFromStorage('shops', Shop, shops);
+    loadFromStorage('warehouses', Warehouse, warehouses);
+    loadFromStorage('products', Product, products);
+    loadFromStorage('productsInWarehouse', Product, productsInWarehouse);
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+window.addEventListener("beforeunload", () => {
+  localStorage.setItem("shops", JSON.stringify(shops));
+  localStorage.setItem("warehouses", JSON.stringify(warehouses));
+  localStorage.setItem("products", JSON.stringify(products));
+  localStorage.setItem("productsInWarehouse", JSON.stringify(productsInWarehouse));
+});

@@ -1,24 +1,31 @@
-import Product from "./Product.mjs";
-
 class ProductsInWarehouse {
   constructor(addProductCallback, removeProductCallback) {
-    this.products = new Proxy([], {
-      deleteProperty: function (products, index) {
-        removeProductCallback(products[index]);
+    const products = new Proxy([], {
+      deleteProperty: function (arr, index) {
+        removeProductCallback(arr[index]);
 
-        delete products[index];
+        arr.splice(index, 1);
 
         return true;
       },
-      set: function (products, index, product) {
+      set: function (arr, index, product) {
         if (typeof product === "object") {
-          addProductCallback(product);
-          products[index] = product;
+          addProductCallback(product, () => {
+            const index = products.findIndex(
+              (el) =>
+                product.productId === el.productId && product.warehouseId === el.warehouseId
+            );
+           
+            delete products[index];
+          });
+          arr[index] = product;
         }
 
         return true;
       },
     });
+
+    this.products = products;
   }
 
   addProduct(warehouseId, productId) {
@@ -30,7 +37,8 @@ class ProductsInWarehouse {
       (product) =>
         product.productId === productId && product.warehouseId === warehouseId
     );
-    this.products.splice(index, 1);
+   
+    delete this.products[index];
   }
 }
 
