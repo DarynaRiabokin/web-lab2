@@ -433,6 +433,7 @@ window.addEventListener("load", () => {
     loadFromStorage('warehouses', Warehouse, warehouses);
     loadFromStorage('products', Product, products);
     loadFromStorage('productsInWarehouse', Product, productsInWarehouse);
+    loadFromStorage('productsInShops', Product, productsInShops);
   } catch (e) {
     console.log(e);
   } finally {
@@ -447,4 +448,5 @@ window.addEventListener("beforeunload", () => {
   localStorage.setItem("warehouses", JSON.stringify(warehouses));
   localStorage.setItem("products", JSON.stringify(products));
   localStorage.setItem("productsInWarehouse", JSON.stringify(productsInWarehouse));
+  localStorage.setItem("productsInShops", JSON.stringify(productsInShops))
 });
