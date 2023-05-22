@@ -2,13 +2,19 @@ import Shop from "./models/Shop.mjs";
 import Product from "./models/Product.mjs";
 import Warehouse from "./models/Warehouse.mjs";
 import ProductsInWarehouse from "./models/ProductsInWarehouse.mjs";
+import ProductInStore from "./models/ProductsInStore.mjs";
 
 const addShopForm = document.getElementById("add-shop-form");
 const addProductForm = document.getElementById("add-product-form");
 const addWarehouseForm = document.getElementById("add-warehouse-form");
+const addProductToStoreForm = document.getElementById("add-product-to-store-form");
+const removeProductFromStoreForm = document.getElementById("remove-product-from-store-form");
+const transferForm = document.getElementById("transfer-product-form");
 const addProductToWarehouseForm = document.getElementById(
   "add-product-to-warehouse-form"
 );
+
+const productsInShopsTable = document.getElementById("products-in-stores-table");
 const shopsTable = document.getElementById("shops-table");
 const productsTable = document.getElementById("products-table");
 const warehouseTable = document.getElementById("warehouses-table");
@@ -19,6 +25,16 @@ const productsInWarehousesTable = document.getElementById(
 const chooseShopSelector = document.getElementById("choose-shop");
 const warehouseIdSelector = document.getElementById("warehouse-id");
 const productIdSelector = document.getElementById("product-id");
+const addWarehouseIdSelector = document.getElementById("add-warehouse-id");
+const removeWarehouseIdSelector = document.getElementById("remove-warehouse-id");
+const addProductIdSelector = document.getElementById("add-product-id");
+const removeProductIdSelector = document.getElementById("remove-product-id");
+const addStoreIdSelector = document.getElementById("add-store-id");
+const removeStoreIdSelector = document.getElementById("remove-store-id");
+const transferSelector1 = document.getElementById("warehouse-id-1");
+const transferSelector2 = document.getElementById("warehouse-id-2");
+
+const tempBody = new Map();
 
 const shops = new Proxy([], {
   deleteProperty: function (arr, index) {
@@ -56,7 +72,9 @@ const shops = new Proxy([], {
         tableRow.appendChild(rowChild);
       });
 
-      chooseShopSelector.appendChild(chooseShopNode);
+      chooseShopSelector.appendChild(chooseShopNode.cloneNode(true));
+      addStoreIdSelector.appendChild(chooseShopNode.cloneNode(true));
+      removeStoreIdSelector.appendChild(chooseShopNode.cloneNode(true));
       shopsTable.appendChild(tableRow);
       arr[index] = shop;
     }
@@ -128,6 +146,7 @@ const warehouses = new Proxy([], {
       const warehouseIdNode = document.createElement("option");
       warehouseIdNode.value = warehouse.id;
       warehouseIdNode.innerText = warehouse.id;
+      warehouseIdNode.selected = index === 0;
       const tableRow = document.createElement("tr");
       tableRow.id = `warehouse-${warehouse.id}`;
 
@@ -149,7 +168,11 @@ const warehouses = new Proxy([], {
         }
       );
 
-      warehouseIdSelector.appendChild(warehouseIdNode);
+      warehouseIdSelector.appendChild(warehouseIdNode.cloneNode(true));
+      addWarehouseIdSelector.appendChild(warehouseIdNode.cloneNode(true));
+      removeWarehouseIdSelector.appendChild(warehouseIdNode.cloneNode(true));
+      transferSelector1.appendChild(warehouseIdNode.cloneNode(true));
+      transferSelector2.appendChild(warehouseIdNode.cloneNode(true));
       warehouseTable.appendChild(tableRow);
       arr[index] = warehouse;
     }
@@ -160,6 +183,11 @@ const warehouses = new Proxy([], {
 const productsInWarehouse = new ProductsInWarehouse(
   addProductToWarehouse,
   removeProductFromWarehouse
+);
+
+const productsInShops = new ProductInStore(
+  addProductToStore,
+  removeProductFromStore
 );
 
 addShopForm.onsubmit = (event) => {
@@ -198,7 +226,122 @@ addProductToWarehouseForm.onsubmit = (event) => {
   return false;
 };
 
+addProductToStoreForm.onsubmit = (event) => {
+  const shopId = event.target.elements["store-id"].value;
+  const productId = event.target.elements["product-id"].value;
+  const warehouseId = event.target.elements["warehouse-id"].value;
+
+  productsInWarehouse.removeProduct(warehouseId, productId);
+  productsInShops.addProduct(shopId, productId);
+
+  return false;
+};
+
+removeProductFromStoreForm.onsubmit = (event) => {
+  const shopId = event.target.elements["store-id"].value;
+  const productId = event.target.elements["product-id"].value;
+  const warehouseId = event.target.elements["warehouse-id"].value;
+
+  productsInShops.removeProduct(shopId, productId);
+  productsInWarehouse.addProduct(warehouseId, productId);
+
+  return false;
+};
+
+transferForm.onsubmit = (event) => {
+  const warehouseId1 = event.target.elements["warehouse-id-1"].value;
+  const warehouseId2 = event.target.elements["warehouse-id-2"].value;
+  const productId = event.target.elements["transfer-product-id"].value;
+
+  const warehouse1 = warehouses.findIndex(el => el.id === warehouseId1);
+  const warehouse2 = warehouses.findIndex(el => el.id === warehouseId2);
+
+  if (warehouses[warehouse1].shopId !== warehouses[warehouse2].shopId) {
+    return false;
+  }
+
+  productsInWarehouse.transfer(warehouse1, warehouseId2, productId);
+
+  return false;
+}
+
+document.querySelectorAll(".search").forEach(searchElement => {
+  const section = searchElement.dataset.search;
+  searchElement.addEventListener("change", (event) => {
+    getSearch(section, event.target.value);
+  });
+});
+
+addWarehouseIdSelector.addEventListener("change", (event) => {
+  const warehouseId = event.target.value;
+  
+  updateAddWarehouseIdSelector(warehouseId);
+});
+
+removeStoreIdSelector.addEventListener("change", (event) => {
+  const storeId = event.target.value;
+  
+  updateRemoveStoreIdSelector(storeId);
+});
+
+function updateRemoveStoreIdSelector(storeId) {
+  const products = productsInShops.getByStoreId(storeId);
+  removeProductIdSelector.innerHTML = '';
+
+  products.forEach(product => {
+    const option = document.createElement('option');
+    option.value = product.productId;
+    option.innerText = product.productId;
+    removeProductIdSelector.appendChild(option);
+  });
+}
+
+
+function updateAddWarehouseIdSelector(warehouseId, select = addProductIdSelector) {
+  const products = productsInWarehouse.getByWarehouseId(warehouseId);
+  select.innerHTML = '';
+
+  products.forEach(product => {
+    const option = document.createElement('option');
+    option.value = product.productId;
+    option.innerText = product.productId;
+    select.appendChild(option);
+  });
+}
+
+function addProductToStore({ productId, storeId }, removeItem) {
+  const productRow = document.createElement("tr");
+  productRow.id = `${productId}_${storeId}`;
+
+  const deleteChild = document.createElement("td");
+  const deleteButton = document.createElement("button");
+  deleteButton.className = "btn btn-danger";
+  deleteButton.innerText = "X";
+  deleteButton.onclick = removeItem;
+  deleteChild.appendChild(deleteButton);
+  productRow.appendChild(deleteChild);
+
+  [storeId, productId].forEach((element) => {
+    const rowChild = document.createElement("td");
+    rowChild.innerText = element;
+    productRow.appendChild(rowChild);
+  });
+
+  productsInShopsTable.appendChild(productRow);
+}
+
+function removeProductFromStore({ productId, storeId }) {
+  const node = document.getElementById(`${productId}_${storeId}`);
+  node.parentNode.removeChild(node);
+}
+
 function addProductToWarehouse({ productId, warehouseId }, removeItem) {
+  const warehouse = warehouses.find(el => el.id === warehouseId);
+
+  if (warehouse.capacity <= productsInWarehouse.products.length) {
+    return;
+  }
+
   const productRow = document.createElement("tr");
   productRow.id = `${productId}_${warehouseId}`;
 
@@ -249,6 +392,41 @@ function loadFromStorage(key, Class, target) {
   }
 }
 
+function getSearch(section, search) {
+  let element = document.querySelector(`#${section}-table`);
+
+  if (!search.trim() && tempBody.has(section)) {
+    const parent = element.parentElement;
+    parent.removeChild(element);
+    parent.appendChild(tempBody.get(section));
+    tempBody.delete(section);
+    return;
+  }
+
+  if (!tempBody.has(section)) {
+    tempBody.set(section, element.cloneNode(true));
+  } else {
+    const parent = element.parentElement;
+    parent.removeChild(element);
+    element = tempBody.get(section).cloneNode(true);
+    parent.appendChild(element);
+  }
+
+  const rows = element.querySelectorAll("tr");
+
+  for (const row of rows) {
+    const tds = row.querySelectorAll("td");
+
+    if (!Array.from(tds).some(el => el.innerText.includes(search.trim()))) {
+      row.parentElement.removeChild(row);
+    }
+  }
+}
+
+document.getElementById("warehouse-id-1").addEventListener("change", (event) => {
+  updateAddWarehouseIdSelector(event.target.value, document.getElementById("transfer-product-id"));
+});
+
 window.addEventListener("load", () => {
   try {
     loadFromStorage('shops', Shop, shops);
@@ -257,6 +435,10 @@ window.addEventListener("load", () => {
     loadFromStorage('productsInWarehouse', Product, productsInWarehouse);
   } catch (e) {
     console.log(e);
+  } finally {
+    updateAddWarehouseIdSelector(addWarehouseIdSelector.value);
+    updateAddWarehouseIdSelector(document.getElementById("warehouse-id-1").value, document.getElementById("transfer-product-id"));
+    updateRemoveStoreIdSelector(removeStoreIdSelector.value);
   }
 });
 

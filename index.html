@@ -72,9 +72,57 @@
           </div>
           <button type="submit" class="btn btn-primary">Add Product</button>
         </form>
+        <form class="w-50" id="add-product-to-store-form">
+          <h3>Add Product To Store From Warehouse</h3>
+          <div class="mb-3">
+            <label for="add-warehouse-id" class="form-label">Warehouse ID</label>
+            <select class="form-select" name="warehouse-id" id="add-warehouse-id" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="add-product-id" class="form-label">Product ID</label>
+            <select class="form-select" name="product-id" id="add-product-id" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="add-store-id" class="form-label">Store ID</label>
+            <select class="form-select" name="store-id" id="add-store-id" required></select>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Product</button>
+        </form>
+        <form class="w-50" id="remove-product-from-store-form">
+          <h3>Remove Product From Store To Warehouse</h3>
+          <div class="mb-3">
+            <label for="remove-warehouse-id" class="form-label">Warehouse ID</label>
+            <select class="form-select" name="warehouse-id" id="remove-warehouse-id" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="remove-product-id" class="form-label">Product ID</label>
+            <select class="form-select" name="product-id" id="remove-product-id" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="remove-store-id" class="form-label">Store ID</label>
+            <select class="form-select" name="store-id" id="remove-store-id" required></select>
+          </div>
+          <button type="submit" class="btn btn-primary">Remove Product</button>
+        </form>
+        <form class="w-100" id="transfer-product-form">
+          <h3>Transfer from Warehouse To Warehouse</h3>
+          <div class="mb-3">
+            <label for="warehouse-id-2" class="form-label">Warehouse ID 1</label>
+            <select class="form-select" name="warehouse-id-1" id="warehouse-id-1" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="warehouse-id-2" class="form-label">Warehouse ID 2</label>
+            <select class="form-select" name="warehouse-id-2" id="warehouse-id-2" required></select>
+          </div>
+          <div class="mb-3">
+            <label for="transfer-product-id" class="form-label">Product ID</label>
+            <select class="form-select" name="product-id" id="transfer-product-id" required></select>
+          </div>
+          <button type="submit" class="btn btn-primary">Transfer Product</button>
+        </form>
       </div>
       <fieldset>
-        <legend>Shops</legend>
+        <legend class="d-flex gap-3">Shops: <input type="text" class="form-control search w-25" data-search="shops" placeholder="search" /></legend>
         <table id="table-shops" class="table">
           <thead>
             <tr>
@@ -88,7 +136,7 @@
         </table>
       </fieldset>
       <fieldset>
-        <legend>Products</legend>
+        <legend class="d-flex gap-3">Products: <input type="text" class="form-control search w-25" data-search="products" placeholder="search" /></legend>
         <table id="table-products" class="table">
           <thead>
             <tr>
@@ -102,7 +150,7 @@
         </table>
       </fieldset>
       <fieldset>
-        <legend>Warehouses</legend>
+        <legend class="d-flex gap-3">Warehouses: <input type="text" class="form-control search w-25" data-search="warehouses" placeholder="search" /></legend>
         <table id="table-warehouses" class="table">
           <thead>
             <tr>
@@ -116,16 +164,29 @@
         </table>
       </fieldset>
       <fieldset>
-        <legend>Products in Warehouses</legend>
+        <legend class="d-flex gap-3">Products in Warehouses: <input type="text" class="form-control search w-25" data-search="products-in-warehouses" placeholder="search" /></legend>
         <table id="table-products-in-warehouses" class="table">
           <thead>
             <tr>
               <th width="50" scope="col"></th>
-              <th scope="col">Warehouse ID</th>
               <th scope="col">Product ID</th>
+              <th scope="col">Warehouse ID</th>
             </tr>
           </thead>
           <tbody id="products-in-warehouses-table"></tbody>
+        </table>
+      </fieldset>
+      <fieldset>
+        <legend class="d-flex gap-3">Products in Stores: <input type="text" class="form-control search w-25" data-search="products-in-stores" placeholder="search" /></legend>
+        <table id="table-products-in-stores" class="table">
+          <thead>
+            <tr>
+              <th width="50" scope="col"></th>
+              <th scope="col">Store ID</th>
+              <th scope="col">Product ID</th>
+            </tr>
+          </thead>
+          <tbody id="products-in-stores-table"></tbody>
         </table>
       </fieldset>
     </main>
